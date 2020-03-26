@@ -10,14 +10,20 @@ main:
 //i.e. odd: subtract/add 1201, even: subtract/add 1202 
 
 //Following is How things work!
+//used registers: r6, r12, 
+//free registers: r11, r9, r7
   nop
   bl init
+  ldr r6, =0x200000b0
   ldr r12, =0x1 //determine odd and even approach
-  ldr r11, =0x14fff
-  ldr r9, =0xb000
+  ldr r11, =0x14fff //0x200000b0+32
+  str r11, [r6, 32]
+  ldr r9, =0xb000 //0x200000b0+36
+  str r9, [r6, 36]
   ldr r8, =0xffff
   ldr r7, =2
-  ldr r6, =0x200000b0
+  str r7, [r6, 40]
+  
   str r11, [r6, 0]
   str r11, [r6, 4]
   str r11, [r6, 8]
@@ -30,8 +36,11 @@ main:
 
   //This is when signal turning from over 0x17fff to downward
   predown:
-  mul r4, r11, r7  //derive 2*0x17fff
-  sub r10, r4, r10  //2*0x17fff-Current value(is the value that mapped back) 
+  ldr r11, [r6, 32]
+  ldr r7, [r6, 40]
+  bl switch
+  //derive 2*0x17fff
+  //2*0x17fff-Current value(is the value that mapped back) 
   b downassign
 
   down:
@@ -47,6 +56,7 @@ deven:
   sub r10, 1202
 
 dsub:
+  ldr r9, [r6, 36]
   cmp r10, r9 //if less than 0x8000, turn upward
   blt preup
 
@@ -89,8 +99,11 @@ dsub:
 
   //This is when signal turning from less than 0x8000 to upward
   preup:
-  mul r4, r9, r7  //derive 2*0x8000
-  sub r10, r4, r10 //2*0x8000-Current value(is the value that mapped back)
+  ldr r11, [r6, 36]
+  ldr r7, [r6, 40]
+  bl switch
+  //derive 2*0x8000
+  //2*0x8000-Current value(is the value that mapped back)
   b upassign
 
   up:
@@ -106,6 +119,7 @@ ueven:
   add r10, 1202
 
 usub:
+  ldr r11, [r6, 32]
   cmp r10, r11 //if more than 0x17fff, turn downward
   bgt predown
 
@@ -146,3 +160,10 @@ usub:
   b up
 
 .size main, .-main
+
+.type switch, %function
+switch:
+  mul r9, r11, r7
+  sub r10, r9, r10
+  bx lr
+.size switch, .-switch
