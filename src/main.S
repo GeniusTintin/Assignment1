@@ -18,13 +18,12 @@ predown:
 
 down:
 
-  mov r0, r10
-  bl BSP_AUDIO_OUT_Play_Sample
-
-  sub r10, 1201
   cmp r10, r11
   blt preup
 
+  mov r0, r10
+  bl BSP_AUDIO_OUT_Play_Sample
+  sub r10, 1201
   b down
 
 preup:
@@ -32,13 +31,12 @@ preup:
   sub r10, r8, r10 
 
 up:
-  mov r0, r10
-  bl BSP_AUDIO_OUT_Play_Sample
-
-  add r10, 1201
+  
   cmp r10, r12
   bgt predown
-
+  mov r0, r10
+  bl BSP_AUDIO_OUT_Play_Sample
+  add r10, 1201
   b up
 
 .size main, .-main
