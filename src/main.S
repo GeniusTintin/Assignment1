@@ -14,15 +14,20 @@ main:
 //free registers: r11, r9, r7
   nop
   bl init
-  ldr r6, =0x200000b0
+  ldr r6, =0x200000b4
   ldr r12, =0x1 //determine odd and even approach
-  ldr r11, =0x14fff //0x200000b0+32
-  str r11, [r6, 32]
-  ldr r9, =0xb000 //0x200000b0+36
+  ldr r11, =0x17fff //0x200000b0+32
+  str r11, [r6, 32] //store in memory to protect the value
+  ldr r9, =0x8000 //0x200000b0+36
   str r9, [r6, 36]
-  ldr r8, =0xffff
-  ldr r7, =2
+  ldr r8, =1201
+  str r8, [r6, 48] //parameter of step
+  ldr r8, =48000
+  str r8, [r6, 52] // sampling rate
+  ldr r7, =0x2  // a parameter used in mul function
   str r7, [r6, 40]
+  ldr r7, =0x1  // a parameter used for counting (1:200)
+  str r7, [r6, 44]
   
   str r11, [r6, 0]
   str r11, [r6, 4]
@@ -50,10 +55,15 @@ main:
   beq deven
 
 dodd:
-  sub r10, 1201
+  //ldr r8, [r6, 48]
+  bl FrequencyChanger
+  sub r10, r8
   b dsub
 deven:
-  sub r10, 1202
+  //ldr r8, [r6, 48]
+  bl FrequencyChanger
+  sub r10, r8
+  sub r10, 1
 
 dsub:
   ldr r9, [r6, 36]
@@ -80,6 +90,8 @@ dsub:
   lsr r0, 3 
   //and r0, r8
   bl BSP_AUDIO_OUT_Play_Sample
+
+  //Shift the stack
   ldr r5, [r6, 20]
   str r5, [r6, 24]
   ldr r5, [r6, 16]
@@ -93,7 +105,16 @@ dsub:
   ldr r5, [r6, 0]
   str r5, [r6, 4]
   str r10, [r6, 0]
+
   eor r12, 1 //parity inversion
+  ldr r7, [r6, 44]
+  add r7, 1
+  str r7, [r6, 44]
+
+  ldr r8, [r6, 52]
+  cmp r7, r8
+  IT EQ
+  bleq clearCounter
 
   b down
 
@@ -113,10 +134,14 @@ dsub:
   beq ueven
 
 uodd:
-  add r10, 1201
+  bl FrequencyChanger
+  add r10, r8
+  
   b usub
 ueven:
-  add r10, 1202
+  bl FrequencyChanger
+  add r10, r8
+  add r10, 1
 
 usub:
   ldr r11, [r6, 32]
@@ -143,6 +168,8 @@ usub:
   lsr r0, 3 
   //and r0, r8
   bl BSP_AUDIO_OUT_Play_Sample
+
+  //Shift the stack
   ldr r5, [r6, 20]
   str r5, [r6, 24]
   ldr r5, [r6, 16]
@@ -156,7 +183,17 @@ usub:
   ldr r5, [r6, 0]
   str r5, [r6, 4]
   str r10, [r6, 0]
+
   eor r12, 1  //parity inversion
+  ldr r7, [r6, 44]
+  add r7, 1
+  str r7, [r6, 44]
+  
+  ldr r8, [r6, 52]
+  cmp r7, r8
+  IT EQ
+  bleq clearCounter
+
   b up
 
 .size main, .-main
@@ -167,3 +204,27 @@ switch:
   sub r10, r9, r10
   bx lr
 .size switch, .-switch
+
+.type clearCounter, %function
+clearCounter:
+  mov r7, 1
+  str r7, [r6, 44]
+.size clearCounter, .-clearCounter
+
+.type FrequencyChanger, %function
+FrequencyChanger:
+  ldr r8, [r6, 48] //step length
+
+  ldr r11, [r6, 52] // sampling rate
+  ldr r9, [r6, 40] //constant 2
+  ldr r7, [r6, 44] //counter
+  udiv r11, r11, r9
+
+  cmp r7, r11
+  blt skip
+  //ldr r9, [r6, 40]
+  mul r8, r9
+  //add r8, r9
+  skip:
+  bx lr
+.size FrequencyChanger, .-FrequencyChanger
