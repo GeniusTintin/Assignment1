@@ -29,6 +29,7 @@ main:
   ldr r7, =0x1  // a parameter used for counting (1:200)
   str r7, [r6, 44]
   
+  //actually create a queue for the moving average filter
   str r11, [r6, 0]
   str r11, [r6, 4]
   str r11, [r6, 8]
@@ -73,38 +74,14 @@ dsub:
   downassign:
   mov r0, r10
 
-  ldr r5, [r6, 24]
-  add r0, r5
-  ldr r5, [r6, 20]
-  add r0, r5
-  ldr r5, [r6, 16]
-  add r0, r5
-  ldr r5, [r6, 12]
-  add r0, r5
-  ldr r5, [r6, 8]
-  add r0, r5
-  ldr r5, [r6, 4]
-  add r0, r5
-  ldr r5, [r6, 0]
-  add r0, r5
+  bl addAssign
+ 
   lsr r0, 3 
   //and r0, r8
   bl BSP_AUDIO_OUT_Play_Sample
 
-  //Shift the stack
-  ldr r5, [r6, 20]
-  str r5, [r6, 24]
-  ldr r5, [r6, 16]
-  str r5, [r6, 20]
-  ldr r5, [r6, 12]
-  str r5, [r6, 16]
-  ldr r5, [r6, 8]
-  str r5, [r6, 12]
-  ldr r5, [r6, 4]
-  str r5, [r6, 8]
-  ldr r5, [r6, 0]
-  str r5, [r6, 4]
-  str r10, [r6, 0]
+  //Shift the queue
+  bl shiftQueue
 
   eor r12, 1 //parity inversion
   ldr r7, [r6, 44]
@@ -148,41 +125,17 @@ usub:
   cmp r10, r11 //if more than 0x17fff, turn downward
   bgt predown
 
-  upassign:
+upassign:
 
   mov r0, r10
-  ldr r5, [r6, 24]
-  add r0, r5
-  ldr r5, [r6, 20]
-  add r0, r5
-  ldr r5, [r6, 16]
-  add r0, r5
-  ldr r5, [r6, 12]
-  add r0, r5
-  ldr r5, [r6, 8]
-  add r0, r5
-  ldr r5, [r6, 4]
-  add r0, r5
-  ldr r5, [r6, 0]
-  add r0, r5
+  
+  bl addAssign
+
   lsr r0, 3 
-  //and r0, r8
   bl BSP_AUDIO_OUT_Play_Sample
 
-  //Shift the stack
-  ldr r5, [r6, 20]
-  str r5, [r6, 24]
-  ldr r5, [r6, 16]
-  str r5, [r6, 20]
-  ldr r5, [r6, 12]
-  str r5, [r6, 16]
-  ldr r5, [r6, 8]
-  str r5, [r6, 12]
-  ldr r5, [r6, 4]
-  str r5, [r6, 8]
-  ldr r5, [r6, 0]
-  str r5, [r6, 4]
-  str r10, [r6, 0]
+  //Shift the queue
+  bl shiftQueue
 
   eor r12, 1  //parity inversion
   ldr r7, [r6, 44]
@@ -228,3 +181,43 @@ FrequencyChanger:
   skip:
   bx lr
 .size FrequencyChanger, .-FrequencyChanger
+
+
+.type addAssign, %function
+addAssign:
+  ldr r5, [r6, 24]
+  add r0, r5
+  ldr r5, [r6, 20]
+  add r0, r5
+  ldr r5, [r6, 16]
+  add r0, r5
+  ldr r5, [r6, 12]
+  add r0, r5
+  ldr r5, [r6, 8]
+  add r0, r5
+  ldr r5, [r6, 4]
+  add r0, r5
+  ldr r5, [r6, 0]
+  add r0, r5
+  bx lr
+
+.size addAssign, .-addAssign
+
+.type shiftQueue, %function
+shiftQueue:
+  ldr r5, [r6, 20]
+  str r5, [r6, 24]
+  ldr r5, [r6, 16]
+  str r5, [r6, 20]
+  ldr r5, [r6, 12]
+  str r5, [r6, 16]
+  ldr r5, [r6, 8]
+  str r5, [r6, 12]
+  ldr r5, [r6, 4]
+  str r5, [r6, 8]
+  ldr r5, [r6, 0]
+  str r5, [r6, 4]
+  str r10, [r6, 0]
+
+  bx lr
+.size shiftQueue, .-shiftQueue
