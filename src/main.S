@@ -14,7 +14,7 @@ main:
 //free registers: r11, r9, r7
   nop
   bl init
-  ldr r6, =0x200000b4
+  ldr r6, =0x200000b4 //Start memroy of the queue
   ldr r12, =0x1 //determine odd and even approach
   ldr r11, =0x17fff //0x200000b0+32
   str r11, [r6, 32] //store in memory to protect the value
@@ -30,13 +30,8 @@ main:
   str r7, [r6, 44]
   
   //actually create a queue for the moving average filter
-  str r11, [r6, 0]
-  str r11, [r6, 4]
-  str r11, [r6, 8]
-  str r11, [r6, 12]
-  str r11, [r6, 16]
-  str r11, [r6, 20]
-  str r11, [r6, 24]
+  bl createQueue
+  
   mov r10, r11
   b downassign
 
@@ -181,6 +176,20 @@ FrequencyChanger:
   skip:
   bx lr
 .size FrequencyChanger, .-FrequencyChanger
+
+.type createQueue, %function
+createQueue:
+  ldr r11, [r6, 32]
+  str r11, [r6, 0]
+  str r11, [r6, 4]
+  str r11, [r6, 8]
+  str r11, [r6, 12]
+  str r11, [r6, 16]
+  str r11, [r6, 20]
+  str r11, [r6, 24]
+
+  bx lr
+.size createQueue, .-createQueue
 
 
 .type sumQueue, %function
