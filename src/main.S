@@ -41,7 +41,7 @@ main:
   b downassign
 
   //This is when signal turning from over 0x17fff to downward
-  predown:
+predown:
   ldr r11, [r6, 32]
   ldr r7, [r6, 40]
   bl switch
@@ -49,7 +49,7 @@ main:
   //2*0x17fff-Current value(is the value that mapped back) 
   b downassign
 
-  down:
+down:
   cmp r12, 1
   beq dodd
   cmp r12, 0
@@ -71,7 +71,7 @@ dsub:
   cmp r10, r9 //if less than 0x8000, turn upward
   blt preup
 
-  downassign:
+downassign:
   mov r0, r10
 
   bl addAssign
@@ -96,7 +96,7 @@ dsub:
   b down
 
   //This is when signal turning from less than 0x8000 to upward
-  preup:
+preup:
   ldr r11, [r6, 36]
   ldr r7, [r6, 40]
   bl switch
@@ -104,7 +104,7 @@ dsub:
   //2*0x8000-Current value(is the value that mapped back)
   b upassign
 
-  up:
+up:
   cmp r12, 1
   beq uodd
   cmp r12, 0
