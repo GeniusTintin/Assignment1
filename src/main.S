@@ -74,7 +74,7 @@ dsub:
 downassign:
   mov r0, r10
 
-  bl addAssign
+  bl sumQueue
  
   lsr r0, 3 
   //and r0, r8
@@ -129,7 +129,7 @@ upassign:
 
   mov r0, r10
   
-  bl addAssign
+  bl sumQueue
 
   lsr r0, 3 
   bl BSP_AUDIO_OUT_Play_Sample
@@ -183,8 +183,8 @@ FrequencyChanger:
 .size FrequencyChanger, .-FrequencyChanger
 
 
-.type addAssign, %function
-addAssign:
+.type sumQueue, %function
+sumQueue:
   ldr r5, [r6, 24]
   add r0, r5
   ldr r5, [r6, 20]
@@ -201,7 +201,7 @@ addAssign:
   add r0, r5
   bx lr
 
-.size addAssign, .-addAssign
+.size sumQueue, .-sumQueue
 
 .type shiftQueue, %function
 shiftQueue:
